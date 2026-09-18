@@ -15,8 +15,11 @@ GFIX_EXE = "gfix.exe"
 NO_SERVICE = "-1"
 
 
-@dataclass
+@dataclass(frozen=True)
 class MedocInstance:
+    # immutable snapshot of an installed instance; after installing an
+    # update, build a new value with dataclasses.replace(instance, ...)
+    # instead of assigning to fields
     name: str
     path: Path
     major: int

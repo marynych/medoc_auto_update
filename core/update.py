@@ -7,7 +7,7 @@ from loguru import logger
 
 from core.utils import parse_version
 
-NAME_PATTERN = re.compile(r"^.+\.(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)\.(zip|upd)$", re.IGNORECASE)
+NAME_PATTERN = re.compile(r"^.+\.(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)\.upd$", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -18,12 +18,14 @@ class Update:
 
 
 def update_from_path(path: Path) -> Optional[Update]:
-    # ezvit.11.02.190-11.02.191.zip -> Update(from=(11,2,190), to=(11,2,191))
+    # ezvit.11.02.190-11.02.191.upd -> Update(from=(11,2,190), to=(11,2,191))
+    # only .upd counts as an Update; a .zip is raw material that hasn't
+    # been turned into one yet (that happens in the downloader)
     match = NAME_PATTERN.match(path.name)
     if not match:
         return None
 
-    from_str, to_str, _ext = match.groups()
+    from_str, to_str = match.groups()
     return Update(
         path=path,
         from_version=parse_version(from_str),

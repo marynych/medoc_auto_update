@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+logs/*.log
+updates/*
+!updates/.gitkeep
+last_update.txt

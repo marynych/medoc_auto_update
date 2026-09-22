@@ -7,4 +7,4 @@ def parse_version(version_str: str) -> Tuple[int, int, int]:
         major, minor, build = version_str.split(".")
         return int(major), int(minor), int(build)
     except (ValueError, AttributeError) as e:
-        raise ValueError(f"Не удалось распознать версию в строке '{version_str}': {e}")
+        raise ValueError(f"Could not parse version from string '{version_str}': {e}")

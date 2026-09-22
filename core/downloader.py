@@ -36,19 +36,19 @@ def parse_updates(html: str) -> List[AvailableUpdate]:
     for item in soup.find_all("div", class_="download-dist-specification-item"):
         version_spans = item.find_all("span", class_="js-update-num")
         if len(version_spans) != 1:
-            logger.debug("Пропущен элемент списка обновлений: не хватает данных")
+            logger.debug("Skipped update list item: missing data")
             continue
 
         try:
             version = parse_version(version_spans[0].text.strip())
         except ValueError:
-            logger.debug("Пропущен элемент списка обновлений: не распознана версия")
+            logger.debug("Skipped update list item: unrecognized version")
             continue
 
         links = item.find_all("a", class_="main-btn")
         md5_spans = item.find_all("span", class_="js-md5")
         if len(links) < 2 or not md5_spans:
-            logger.debug("Пропущен элемент списка обновлений: не хватает данных")
+            logger.debug("Skipped update list item: missing data")
             continue
 
         updates.append(AvailableUpdate(
@@ -85,7 +85,7 @@ def download_file(url: str, target_dir: Path, expected_md5: str, proxy: Optional
                     f.write(chunk)
 
         if get_md5_hash(file_path) != expected_md5:
-            raise ValueError("MD5 скачанного файла не совпадает с ожидаемым")
+            raise ValueError("Downloaded file's MD5 does not match the expected one")
 
         return file_path
 
@@ -101,16 +101,16 @@ def download_update(update: AvailableUpdate, target_dir: Path, proxy: Optional[s
     for attempt in range(1, DOWNLOAD_ATTEMPTS + 1):
         try:
             download_file(update.url, target_dir, update.md5, proxy)
-            logger.success(f"Обновление {version_str} скачано успешно.")
+            logger.success(f"Update {version_str} downloaded successfully.")
             return replace(update, downloaded=True)
 
         except Exception as e:
             last_error = str(e)
             if attempt < DOWNLOAD_ATTEMPTS:
-                logger.warning(f"Сбой при загрузке {version_str} (попытка {attempt}/{DOWNLOAD_ATTEMPTS}): {e}")
+                logger.warning(f"Failed to download {version_str} (attempt {attempt}/{DOWNLOAD_ATTEMPTS}): {e}")
                 time.sleep(RETRY_DELAY_SECONDS)
             else:
-                logger.error(f"Сбой при загрузке {version_str} (попытка {attempt}/{DOWNLOAD_ATTEMPTS}): {e}")
+                logger.error(f"Failed to download {version_str} (attempt {attempt}/{DOWNLOAD_ATTEMPTS}): {e}")
 
     return replace(update, error=last_error)
 
@@ -123,7 +123,7 @@ def download_updates(catalog_url: str, updates_dir: Path, floor_version: Tuple[i
     needed = [u for u in parse_updates(response.text) if u.version > floor_version]
 
     if not needed:
-        logger.info("Нет новых обновлений для скачивания.")
+        logger.info("No new updates to download.")
         return []
 
     return [download_update(u, updates_dir, proxy) for u in needed]

@@ -16,9 +16,9 @@ NO_SERVICE = "-1"
 
 
 @dataclass(frozen=True)
-class MedocInstance:
+class Medoc:
     # immutable snapshot of an installed instance; after installing an
-    # update, build a new value with dataclasses.replace(instance, ...)
+    # update, build a new value with dataclasses.replace(medoc, ...)
     # instead of assigning to fields
     name: str
     path: Path
@@ -129,8 +129,8 @@ def is_network_instance(service_name: Optional[str]) -> bool:
     return bool(service_name) and service_name != NO_SERVICE
 
 
-def build_instance(raw: dict) -> MedocInstance:
-    # raw registry entry -> MedocInstance
+def build_medoc(raw: dict) -> Medoc:
+    # raw registry entry -> Medoc
     path = Path(raw["path"])
     major, minor, build = parse_version(raw["version"])
     service_name = raw.get("service_name")
@@ -139,7 +139,7 @@ def build_instance(raw: dict) -> MedocInstance:
     fb_path = raw.get("fb_path")
     appdata = raw.get("appdata")
 
-    return MedocInstance(
+    return Medoc(
         name=path.name,
         path=path,
         major=major,
@@ -153,6 +153,6 @@ def build_instance(raw: dict) -> MedocInstance:
     )
 
 
-def discover_instances() -> List[MedocInstance]:
+def discover_medocs() -> List[Medoc]:
     # registry -> list of installed Medoc instances
-    return [build_instance(raw) for raw in read_registry()]
+    return [build_medoc(raw) for raw in read_registry()]
